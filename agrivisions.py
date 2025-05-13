@@ -19,7 +19,7 @@ with open("models/maize_model.pkl", "rb") as f:
     maize_model = pickle.load(f)
 
 # Load TensorFlow image classifier model
-leaf_model = tf.keras.models.load_model("leaf_classifier.h5")
+leaf_model = tf.keras.models.load_model("plant_disease_classifier.h5")
 
 # ARIMA prediction function
 def predict_price(crop, dates):
