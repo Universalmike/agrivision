@@ -63,7 +63,7 @@ if st.button("Predict Rice Price"):
 
 # Load data (Simulate reading from CSV)
 df = pd.read_csv('Market Price data - 2007 to 2023.csv', parse_dates=['Date'], index_col='Date')
-model = load_arima_model()
+#model = load_a_model()
 plant_model = load_plant_model()
 
 # Sidebar UI elements
