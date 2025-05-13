@@ -5,3 +5,4 @@ numpy
 pickle-mixin
 scikit-learn
 matplotlib
+openpyxl
