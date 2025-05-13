@@ -1,96 +1,74 @@
 import streamlit as st
-import pickle
 import pandas as pd
-from datetime import datetime
-from statsmodels.tsa.arima.model import ARIMA
 import numpy as np
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
+from PIL import Image
+from utils.preprocess import preprocess_image
+from utils.translate import translate_answer
 
-# Load the trained rice price ARIMAX model
-try:
-    with open('rice_price_arimax_model.pkl', 'rb') as file:
-        loaded_rice_model = pickle.load(file)
-except FileNotFoundError:
-    st.error("Trained rice price model file not found.")
-    st.stop()
+# Load ARIMA Model (assuming it's saved as a pickle)
+@st.cache_resource
+def load_arima_model():
+    # Load your trained ARIMA model here (replace with actual path)
+    import pickle
+    with open('model/rice_price_arimax_model.pkl', 'rb') as file:
+        arima_model = pickle.load(file)
+    return arima_model
 
-# Load your historical data (replace with your actual data loading)
-# Example:
-# data = {'Rice Price': [100, 102, 105, 103, 106, 108],
-#         'temperature': [25, 26, 27, 24, 28, 29],
-#         'inflation': [2, 2.5, 3, 2.8, 3.2, 3.5]}
-# index = pd.to_datetime(['2023-01-01', '2023-02-01', '2023-03-01', '2023-04-01', '2023-05-01', '2023-06-01'])
-# df = pd.DataFrame(data, index=index)
-df = pd.read_csv("Market Price data - 2007 to 2023.csv")  # Assuming your data is stored in this file
+# Load plant classifier model (TensorFlow)
+@st.cache_resource
+def load_plant_model():
+    return tf.keras.models.load_model('plant_disease_classifier.h5')
 
-# 1. Train ARIMA models for temperature and inflation
-def train_exog_arima(data, target_variable, order=(1, 2, 2)):
-    """Trains an ARIMA model for a given exogenous variable."""
-    model = ARIMA(data[target_variable], order=order)
-    model_fit = model.fit()
-    return model_fit
+# ARIMA Prediction Logic
+def predict_rice_price(model, month, temperature):
+    # Example: Predict for next month (based on ARIMA trained with inflation, temperature)
+    # You might need to adjust this depending on how your ARIMA was trained
+    forecast = model.predict(start=len(month) + 1, end=len(month) + 1)
+    predicted_price = forecast[0] * (1 + temperature / 100)  # Adjust for temperature influence
+    return predicted_price
 
-# Train ARIMA models for temperature and inflation
-temp_model = train_exog_arima(df, 'Teamperature')
-infl_model = train_exog_arima(df, 'Inflation')
+# Temperature slider logic
+def get_temperature_slider(df):
+    mean_temp = df['temperature'].mean()
+    return st.slider("Select Temperature for Prediction", min_value=int(mean_temp - 2), max_value=int(mean_temp + 2), value=int(mean_temp))
 
-# 2. Streamlit App
-st.title("Rice Price Prediction")
-st.subheader("Predict the price of rice for a future date.")
+# Load data (Simulate reading from CSV)
+df = pd.read_csv('data/rice_data.csv', parse_dates=['date'], index_col='date')
+model = load_arima_model()
+plant_model = load_plant_model()
 
-# Get the prediction date from the user
-prediction_date_str = st.date_input("Select the prediction date", datetime(2025, 11, 1))
-prediction_date = pd.to_datetime(prediction_date_str)
+# Sidebar UI elements
+st.sidebar.title("Rice Price Prediction & Plant Health")
+month_input = st.sidebar.date_input("Select the Month to Predict", value=pd.to_datetime("2023-12-01"))
+temperature_input = get_temperature_slider(df)
 
-if st.button("Predict Price"):
-    # Calculate the number of periods to forecast
-    last_train_date = df.index[-1]
-    n_periods = (prediction_date - last_train_date).days  # Get number of days
-    if n_periods <= 0:
-        st.error("Prediction date must be after the last date in the training data.")
-        st.stop()
+# Image Classification for Plant Leaf (TensorFlow)
+uploaded_image = st.file_uploader("Upload an image of a plant leaf", type=["jpg", "jpeg", "png"])
+if uploaded_image is not None:
+    image = Image.open(uploaded_image).convert("RGB")
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+    
+    if st.button("Classify Leaf Health"):
+        input_tensor = preprocess_image(image)
+        predictions = plant_model.predict(input_tensor)
+        predicted_class = np.argmax(predictions, axis=1)
+        class_names = ['Healthy', 'Diseased']  # Adjust based on your model
+        st.success(f"Prediction: **{class_names[predicted_class[0]]}**")
+        st.write(f"Confidence: {np.max(predictions) * 100:.2f}%")
 
-    # 3. Generate future dates for exogenous variable predictions
-    future_dates = pd.date_range(start=last_train_date + pd.Timedelta(days=1), periods=n_periods, freq='M')  # Monthly frequency
+# Rice price prediction
+if month_input:
+    predicted_price = predict_rice_price(model, df, temperature_input)
+    st.write(f"Predicted Rice Price for {month_input.strftime('%B %Y')}: {predicted_price:.2f} NGN")
 
-    # 4. Predict future temperature and inflation
-    temp_predictions = temp_model.forecast(steps=n_periods)
-    infl_predictions = infl_model.forecast(steps=n_periods)
+# RAG system with Gemini (Translation included)
+question = st.text_input("Ask a question about rice farming or post-harvest loss:")
 
-    # Create a DataFrame for the exogenous variable predictions
-    future_exog_df = pd.DataFrame({'temperature': temp_predictions, 'inflation': infl_predictions}, index=future_dates)
-
-    # 5. Prepare exogenous variables for rice price prediction
-    # Create the lagged features based on the predicted temperature and inflation
-    future_exog_df['inflation_lag_1'] = future_exog_df['Inflation'].shift(1)
-    future_exog_df['inflation_lag_2'] = future_exog_df['Inflation'].shift(2)
-    future_exog_df['inflation_lag_3'] = future_exog_df['Inflation'].shift(3)
-    future_exog_df['temperature_lag_1'] = future_exog_df['Teamperature'].shift(1)
-    future_exog_df['temperature_lag_2'] = future_exog_df['Teamperature'].shift(2)
-    future_exog_df['temperature_lag_3'] = future_exog_df['Teamperature'].shift(3)
-    future_exog_df.dropna(inplace=True)  # Drop NaN from lags
-
-    # Ensure the prediction date exists in future_exog_df index
-    if prediction_date not in future_exog_df.index:
-        # Find the closest date in future_exog_df index if not directly available
-        closest_date = future_exog_df.index[min(range(len(future_exog_df.index)), key=lambda i: abs(future_exog_df.index[i] - prediction_date))]
-        st.warning(f"The selected prediction date is not available. Adjusting to the closest available date: {closest_date.strftime('%Y-%m-%d')}")
-        prediction_date = closest_date
-
-    # Extract the exogenous variables for the closest prediction date
-    exog_for_rice_prediction = future_exog_df.loc[[prediction_date]]
-
-    # Ensure the order of columns matches the training data
-    exog_for_rice_prediction = exog_for_rice_prediction[['temperature', 'inflation', 'inflation_lag_1', 'inflation_lag_2', 'inflation_lag_3', 'temperature_lag_1', 'temperature_lag_2', 'temperature_lag_3']]
-
-    # 6. Predict rice price
-    rice_prediction = loaded_rice_model.predict(
-        start=len(loaded_rice_model.model.endog),
-        end=len(loaded_rice_model.model.endog),
-        exog=exog_for_rice_prediction
-    )
-
-    if len(rice_prediction) > 0:
-        predicted_price = rice_prediction.iloc[0]
-        st.success(f"The predicted price of rice for {prediction_date.strftime('%B %d, %Y')} is: {predicted_price:.2f}")
-    else:
-        st.warning("Could not generate rice price prediction.")
+if question:
+    # Replace with your RAG and Gemini API call logic
+    answer = "Example answer from your model."
+    translated_answer = translate_answer(answer, lang_choice="Yoruba")
+    st.write(f"Answer: {translated_answer}")
