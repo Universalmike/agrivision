@@ -35,35 +35,40 @@ st.subheader("Predict the price of rice for a future date.")
 #prediction_date = pd.to_datetime(prediction_date_str).to_period('M')
 
 # Let's say this is your input
-prediction_date = st.date_input("Select prediction date")  # returns datetime.date
+import pandas as pd
+import streamlit as st
+
+# Sample date input from Streamlit
+prediction_date = st.date_input("Select prediction date")  # Returns datetime.date
 
 if st.button("Predict Price"):
     if temp_model is None or infl_model is None:
         st.error("Failed to train ARIMA models for temperature and inflation.")
         st.stop()
 
-    # Step 1: Convert prediction_date and last_train_date to Timestamp
     try:
+        # Convert to Timestamp
         prediction_date = pd.Timestamp(prediction_date)
-        last_train_date = pd.to_datetime(df.index[-1])  # e.g., '2025-06-30'
-    except Exception as e:
-        st.error(f"Invalid date format: {e}")
-        st.stop()
+        last_train_date = pd.to_datetime(df.index[-1])
 
-    # Step 2: Convert both to Periods with monthly frequency
-    try:
+        # Convert to Period (monthly)
         pred_period = prediction_date.to_period('M')
         last_period = last_train_date.to_period('M')
+
+        # Subtract: this gives an int
+        n_periods = (pred_period - last_period).n  # .n ensures it is plain int
+
     except Exception as e:
-        st.error(f"Date conversion to period failed: {e}")
+        st.error(f"Date processing failed: {e}")
         st.stop()
 
-    # Step 3: Calculate number of months
-    n_periods = pred_period - last_period
-
+    # Check if valid
     if n_periods <= 0:
         st.error("Prediction date must be after the last date in the training data.")
         st.stop()
+
+    st.success(f"Forecasting for {n_periods} months...")
+
 
     # Now you're safe to proceed with the forecast
     st.success(f"Number of months to forecast: {n_periods}")
