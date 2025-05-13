@@ -52,8 +52,8 @@ if st.button("Predict Price"):
 
     # 6. Create future exogenous variable DataFrame
     future_exog_df = pd.DataFrame({
-        'temperature': temp_predictions,
-        'inflation': infl_predictions
+        'Teamperature': temp_predictions,
+        'Inflation': infl_predictions
     }, index=future_dates)
 
     # 7. Create lag features
