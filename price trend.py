@@ -9,6 +9,9 @@ from utils.preprocess import preprocess_image
 from utils.translate import translate_answer
 from FARMAN.loader import load_and_split
 from FARMAN.vector_sector import create_vector_store
+from langchain.vectorstores import FAISS
+from langchain.embeddings import HuggingFaceEmbeddings
+
 
 # Load ARIMA Model (assuming it's saved as a pickle)
 @st.cache_resource
