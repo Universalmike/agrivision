@@ -10,7 +10,7 @@ googletrans==4.0.0-rc1
 pandas
 statsmodels
 numpy
-pillow
+Pillow
 langchain
 langchain-community
 chromadb
@@ -20,4 +20,3 @@ scikit-learn
 sentence-transformers
 tensorflow==2.11.0
 keras==2.11.0
-statsmodels.tsa.arima.model
