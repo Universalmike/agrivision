@@ -21,4 +21,3 @@ sentence-transformers
 tensorflow
 tf-keras
 pickleshare==0.7.5
-sqlite3 >= 3.35.0
