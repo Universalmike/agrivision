@@ -15,7 +15,7 @@ from FARMAN.vector_sector import create_vector_store
 def load_model():
     # Load your trained ARIMA model here (replace with actual path)
     import pickle
-    with open('rice_price_model.pkl', 'rb') as file:
+    with open('models/rice_price_model.pkl', 'rb') as file:
         arima_model = pickle.load(file)
     return arima_model
 
