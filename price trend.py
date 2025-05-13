@@ -5,6 +5,7 @@ from datetime import datetime
 import plotly.graph_objects as go
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.models import load_model
 import tensorflow as tf
 from PIL import Image
 import calendar
@@ -72,7 +73,7 @@ def classify_leaf(image_bytes):
     img_array /= 255.0  # Normalize the image
 
 # Predicting the class of the image
-    predicted_class = model.predict(img_array)
+    predicted_class = leaf_model.predict(img_array)
     class_labels = ['Tomato__Tomato_mosaic_virus', 'Tomato_Spider_mites_Two_spotted_spider_mite',
                 'Potato___Late_blight', 'Tomato__Target_Spot', 'Tomato_Leaf_Mold',
                 'Potato___healthy', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato_Bacterial_spot',
