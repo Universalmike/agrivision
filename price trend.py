@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 from PIL import Image
 import calendar
+import io
 import pickle
 from langchain.vectorstores import Chroma
 from utils.preprocess import preprocess_image
