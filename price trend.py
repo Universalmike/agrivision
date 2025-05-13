@@ -24,18 +24,32 @@ def load_arima_model():
 def load_plant_model():
     return tf.keras.models.load_model('plant_disease_classifier.h5')
 
-# ARIMA Prediction Logic
-def predict_rice_price(model, month, temperature):
-    # Example: Predict for next month (based on ARIMA trained with inflation, temperature)
-    # You might need to adjust this depending on how your ARIMA was trained
-    forecast = model.predict(start=len(month) + 1, end=len(month) + 1)
-    predicted_price = forecast[0] * (1 + temperature / 100)  # Adjust for temperature influence
-    return predicted_price
+# Section 1: Rice Price Forecasting
+st.header('Rice Price Forecasting')
+forecast_month = st.date_input("Select the month you want to forecast", min_value=pd.to_datetime("2023-01-01"), max_value=pd.to_datetime("2023-12-31"))
+temperature = st.slider("Select Temperature for the selected month (°C)", min_value=-10, max_value=40, value=30)
+inflation = st.slider("Select Inflation Rate for the selected month (%)", min_value=0, max_value=20, value=2)
 
-# Temperature slider logic
-def get_temperature_slider(df):
-    mean_temp = df['Teamperature'].mean()
-    return st.slider("Select Temperature for Prediction", min_value=int(mean_temp - 2), max_value=int(mean_temp + 2), value=int(mean_temp))
+if st.button("Predict Rice Price"):
+    # Prepare the future exogenous data (temperature and inflation) for the selected month
+    future_exog = pd.DataFrame({
+        'Temperature': [temperature],  # The temperature input by the user
+        'Inflation': [inflation]  # The inflation input by the user
+    }, index=[forecast_month])  # The month user selected
+    
+    # Forecast the price using the ARIMA model
+    forecast = fitted_model.forecast(steps=1, exog=future_exog)
+    
+    # Display the forecasted price
+    st.write(f"Forecasted Price for Rice in {forecast_month.strftime('%B %Y')}: {forecast[0]}")
+
+    # Plot historical data and forecast
+    plt.figure(figsize=(10, 6))
+    plt.plot(df.index, y, label='Historical Data')
+    plt.plot(future_exog.index, forecast, label='Forecast', color='red')
+    plt.legend()
+    plt.show()
+    st.pyplot()
 
 # Load data (Simulate reading from CSV)
 df = pd.read_csv('Market Price data - 2007 to 2023.csv', parse_dates=['Date'], index_col='Date')
