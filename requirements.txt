@@ -12,5 +12,3 @@ langchain-community
 chromadb
 google.generativeai
 pypdf
-langchain.embeddings
-sentence-transformers
