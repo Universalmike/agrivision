@@ -61,7 +61,7 @@ def classify_leaf(image_bytes):
     #image = Image.open(io.BytesIO(image_bytes)).resize((224, 224))
     #img_array = np.expand_dims(np.array(image) / 255.0, axis=0)
     #prediction = leaf_model.predict(img_array)[0][0]
-    img = image.load_img(test_image_path, target_size=(224, 224))
+    img = image.load_img(image_bytes, target_size=(224, 224))
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
     img_array /= 255.0  # Normalize the image
