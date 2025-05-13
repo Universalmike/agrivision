@@ -12,7 +12,7 @@ import calendar
 import io
 import pickle
 from tensorflow.keras.preprocessing import image
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import FAISS
 from utils.preprocess import preprocess_image
 from utils.translate import translate_answer
 from FARMAN.loader import load_and_split
