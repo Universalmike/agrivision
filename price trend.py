@@ -77,7 +77,9 @@ def classify_leaf(image_file):
     # Ensure image_file is a stream
     image_bytes = image_file.read() if hasattr(image_file, 'read') else image_file.getvalue()
     img = image.load_img(io.BytesIO(image_bytes), target_size=(224, 224))
+    print(f"{image.size}")
     img_array = image.img_to_array(img)
+    print(img_array.shape)
     img_array = np.expand_dims(img_array, axis=0)
     img_array /= 255.0  # Normalize
 
@@ -86,7 +88,9 @@ def classify_leaf(image_file):
     predicted_label = class_labels[predicted_index]
     #predicted_label = class_labels[np.argmax(predicted_probs)]
     #confidence = predicted_probs[predicted_index]
-
+    confidences = predicted_probs[0][predicted_index]
+    print(confidences)
+    print(predicted_probs)
     return predicted_label #f"{predicted_label} (Confidence: {confidence:.2f})"
 
 
