@@ -10,6 +10,7 @@ from PIL import Image
 import calendar
 import io
 import pickle
+from tensorflow.keras.preprocessing import image
 from langchain.vectorstores import Chroma
 from utils.preprocess import preprocess_image
 from utils.translate import translate_answer
