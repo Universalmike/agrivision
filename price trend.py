@@ -12,10 +12,10 @@ from FARMAN.vector_sector import create_vector_store
 
 # Load ARIMA Model (assuming it's saved as a pickle)
 @st.cache_resource
-def load_arima_model():
+def load_model():
     # Load your trained ARIMA model here (replace with actual path)
     import pickle
-    with open('rice_price_arimax_model.pkl', 'rb') as file:
+    with open('rice_price_model.pkl', 'rb') as file:
         arima_model = pickle.load(file)
     return arima_model
 
@@ -25,30 +25,40 @@ def load_plant_model():
     return tf.keras.models.load_model('plant_disease_classifier.h5')
 
 # Section 1: Rice Price Forecasting
-st.header('Rice Price Forecasting')
-forecast_month = st.date_input("Select the month you want to forecast", min_value=pd.to_datetime("2023-01-01"), max_value=pd.to_datetime("2023-12-31"))
+# Section 1: Rice Price Forecasting
+st.header('Rice Price Prediction')
+
+# User input for month, temperature, and inflation
+month = st.selectbox("Select the month", options=[
+    "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+])
+
+# Convert the month name to a number (0 to 11)
+month_idx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].index(month)
+
+# Temperature and inflation sliders
 temperature = st.slider("Select Temperature for the selected month (°C)", min_value=-10, max_value=40, value=30)
 inflation = st.slider("Select Inflation Rate for the selected month (%)", min_value=0, max_value=20, value=2)
-
+model = load_model()
+# Predict button
 if st.button("Predict Rice Price"):
-    # Prepare the future exogenous data (temperature and inflation) for the selected month
-    future_exog = pd.DataFrame({
-        'Temperature': [temperature],  # The temperature input by the user
-        'Inflation': [inflation]  # The inflation input by the user
-    }, index=[forecast_month])  # The month user selected
+    # Prepare input data for prediction (month index, temperature, inflation)
+    input_data = np.array([[month_idx, temperature, inflation]])
     
-    # Forecast the price using the ARIMA model
-    forecast = fitted_model.forecast(steps=1, exog=future_exog)
+    # Make the prediction using the trained regression model
+    predicted_price = model.predict(input_data)[0]
     
-    # Display the forecasted price
-    st.write(f"Forecasted Price for Rice in {forecast_month.strftime('%B %Y')}: {forecast[0]}")
+    # Display the prediction
+    st.write(f"Predicted Price for Rice in {month}: {predicted_price:.2f}")
 
     # Plot historical data and forecast
     plt.figure(figsize=(10, 6))
     plt.plot(df.index, y, label='Historical Data')
-    plt.plot(future_exog.index, forecast, label='Forecast', color='red')
+    plt.axvline(x=pd.to_datetime(f"2023-{month_idx + 1}-01"), color='red', linestyle='--', label=f'Predicted for {month}')
     plt.legend()
-    plt.show()
+    plt.title("Rice Price Prediction")
+    plt.xlabel("Date")
+    plt.ylabel("Price of Rice")
     st.pyplot()
 
 # Load data (Simulate reading from CSV)
