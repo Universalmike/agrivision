@@ -19,3 +19,4 @@ pypdf
 scikit-learn
 sentence-transformers
 tensorflow
+tf-keras
