@@ -42,87 +42,56 @@ import streamlit as st
 prediction_date = st.date_input("Select prediction date")  # Returns datetime.date
 
 if st.button("Predict Price"):
-    if temp_model is None or infl_model is None:
-        st.error("Failed to train ARIMA models for temperature and inflation.")
-        st.stop()
+    # Calculate number of months to forecast
+    pred_period = prediction_date.to_period('M')
+    last_period = df.index[-1].to_period('M')
+    n_periods = (pred_period - last_period).n
 
-    try:
-        # Convert to Timestamp
-        prediction_date = pd.Timestamp(prediction_date)
-        last_train_date = pd.to_datetime(df.index[-1])
-
-        # Convert to Period (monthly)
-        pred_period = prediction_date.to_period('M')
-        last_period = last_train_date.to_period('M')
-
-        # Subtract: this gives an int
-        n_periods = (pred_period - last_period).n  # .n ensures it is plain int
-
-    except Exception as e:
-        st.error(f"Date processing failed: {e}")
-        st.stop()
-
-    # Check if valid
     if n_periods <= 0:
         st.error("Prediction date must be after the last date in the training data.")
         st.stop()
 
-    st.success(f"Forecasting for {n_periods} months...")
+    # Generate future dates (monthly frequency)
+    future_dates = pd.date_range(start=last_train_date + pd.offsets.MonthEnd(1), periods=n_periods, freq='M')
 
-
-    # Now you're safe to proceed with the forecast
-    st.success(f"Number of months to forecast: {n_periods}")
-
-
-
-    # 3. Generate future dates for exogenous variable predictions
-    future_dates = pd.date_range(start=last_train_date + pd.Timedelta(days=1), periods=n_periods, freq='M') # Monthly Frequency
-
-    # 4. Predict future temperature and inflation
+    # Forecast temperature and inflation
     temp_predictions = temp_model.forecast(steps=n_periods)
     infl_predictions = infl_model.forecast(steps=n_periods)
 
-    # Create a DataFrame for the exogenous variable predictions
-    future_exog_df = pd.DataFrame({'Teamperature': temp_predictions, 'Inflation': infl_predictions}, index=future_dates)
+    # Create DataFrame
+    future_exog_df = pd.DataFrame({'temperature': temp_predictions, 'inflation': infl_predictions}, index=future_dates)
 
-    # 5. Prepare exogenous variables for rice price prediction
-    # Create the lagged features based on the predicted temperature and inflation
-    future_exog_df['inflation_lag_1'] = future_exog_df['Inflation'].shift(1)
-    future_exog_df['inflation_lag_2'] = future_exog_df['Inflation'].shift(2)
-    future_exog_df['inflation_lag_3'] = future_exog_df['Inflation'].shift(3)
-    future_exog_df['temperature_lag_1'] = future_exog_df['Teamperature'].shift(1)
-    future_exog_df['temperature_lag_2'] = future_exog_df['Teamperature'].shift(2)
-    future_exog_df['temperature_lag_3'] = future_exog_df['Teamperature'].shift(3)
-    future_exog_df.dropna(inplace=True)  # Drop NaN from lags
+    # Create lags
+    future_exog_df['inflation_lag_1'] = future_exog_df['inflation'].shift(1)
+    future_exog_df['inflation_lag_2'] = future_exog_df['inflation'].shift(2)
+    future_exog_df['inflation_lag_3'] = future_exog_df['inflation'].shift(3)
+    future_exog_df['temperature_lag_1'] = future_exog_df['temperature'].shift(1)
+    future_exog_df['temperature_lag_2'] = future_exog_df['temperature'].shift(2)
+    future_exog_df['temperature_lag_3'] = future_exog_df['temperature'].shift(3)
+    future_exog_df.dropna(inplace=True)
 
-    # Ensure we only predict for the target date
-    exog_for_rice_prediction = future_exog_df.loc[[prediction_date]]
+    # Align date
+    aligned_prediction_date = prediction_date + pd.offsets.MonthEnd(0)
 
-    # Ensure the order of columns matches the training data
-   
-    if prediction_date in future_exog_df.index:
-        exog_for_rice_prediction = future_exog_df.loc[[prediction_date]]
+    try:
+        exog_for_rice_prediction = future_exog_df.loc[[aligned_prediction_date]]
+    except KeyError:
+        st.error("Aligned prediction date not found in future exogenous predictions.")
+        st.stop()
 
-        # Ensure the order of columns matches the training data
-        exog_cols = ['Teamperature', 'Inflation', 'inflation_lag_1', 'inflation_lag_2', 'inflation_lag_3', 'temperature_lag_1', 'temperature_lag_2', 'temperature_lag_3']
-        if all(col in exog_for_rice_prediction.columns for col in loaded_rice_model.exog_names):
-            exog_for_rice_prediction = exog_for_rice_prediction[loaded_rice_model.exog_names]
-        else:
-            st.error("Error: Exogenous variable columns do not match the trained rice price model.")
-            st.stop()
+    # Predict
+    exog_for_rice_prediction = exog_for_rice_prediction[['temperature', 'inflation', 'inflation_lag_1',
+                                                          'inflation_lag_2', 'inflation_lag_3',
+                                                          'temperature_lag_1', 'temperature_lag_2', 'temperature_lag_3']]
+    rice_prediction = loaded_rice_model.predict(
+        start=len(loaded_rice_model.model.endog),
+        end=len(loaded_rice_model.model.endog),
+        exog=exog_for_rice_prediction
+    )
 
-        # 6. Predict rice price
-        rice_prediction = loaded_rice_model.predict(
-            start=len(loaded_rice_model.model.endog),
-            end=len(loaded_rice_model.model.endog),
-            exog=exog_for_rice_prediction
-        )
-
-        if len(rice_prediction) > 0:
-            predicted_price = rice_prediction.iloc[0]
-            st.success(f"The predicted price of rice for {prediction_date.strftime('%B, %Y')} is: {predicted_price:.2f}")
-        else:
-            st.warning("Could not generate rice price prediction.")
+    if len(rice_prediction) > 0:
+        predicted_price = rice_prediction.iloc[0]
+        st.success(f"The predicted price of rice for {aligned_prediction_date.strftime('%B %d, %Y')} is: {predicted_price:.2f}")
     else:
-        st.warning(f"Could not find exogenous variable predictions for {prediction_date}.")
+        st.warning("Could not generate rice price prediction.")
 
