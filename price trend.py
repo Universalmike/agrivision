@@ -46,7 +46,7 @@ if st.button("Predict Price"):
         st.stop()
 
     # 3. Generate future dates for exogenous variable predictions
-    future_dates = pd.date_range(start=last_train_date + 1, periods=n_periods, freq='M') # Monthly Frequency
+    future_dates = pd.date_range(start=last_train_date + pd.Timedelta(days=1), periods=n_periods, freq='M') # Monthly Frequency
 
     # 4. Predict future temperature and inflation
     temp_predictions = temp_model.forecast(steps=n_periods)
