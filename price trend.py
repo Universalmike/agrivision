@@ -85,9 +85,9 @@ def classify_leaf(image_file):
     predicted_index = np.argmax(predicted_probs)
     predicted_label = class_labels[predicted_index]
     #predicted_label = class_labels[np.argmax(predicted_probs)]
-    confidence = predicted_probs[predicted_index]
+    #confidence = predicted_probs[predicted_index]
 
-    return f"{predicted_label} (Confidence: {confidence:.2f})"
+    return predicted_label #f"{predicted_label} (Confidence: {confidence:.2f})"
 
 
 st.title("Agri Forecast & Leaf Classifier App")
