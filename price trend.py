@@ -132,8 +132,8 @@ with tabs[1]:
     if images:
         for img in images:
             st.image(img, caption="Uploaded Image", use_column_width=True)
-            img_bytes = img.read() if hasattr(img, 'read') else img.getvalue()
-            result = classify_leaf(img_bytes)
+            #img_bytes = img.read() if hasattr(img, 'read') else img.getvalue()
+            result = classify_leaf(img)
             st.success(f"Prediction: {result}")
 
     st.subheader("Classify Leaves in Video")
