@@ -82,9 +82,9 @@ def classify_leaf(image_file):
     img_array /= 255.0  # Normalize
 
     predicted_probs = model.predict(img_array)
-    #predicted_index = np.argmax(predicted_probs)
-    #predicted_label = class_labels[predicted_index]
-    predicted_label = class_labels[np.argmax(predicted_probs)]
+    predicted_index = np.argmax(predicted_probs)
+    predicted_label = class_labels[predicted_index]
+    #predicted_label = class_labels[np.argmax(predicted_probs)]
     confidence = predicted_probs[predicted_index]
 
     return f"{predicted_label} (Confidence: {confidence:.2f})"
