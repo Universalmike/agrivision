@@ -34,7 +34,7 @@ def predict_rice_price(model, month, temperature):
 
 # Temperature slider logic
 def get_temperature_slider(df):
-    mean_temp = df['temperature'].mean()
+    mean_temp = df['Teamperature'].mean()
     return st.slider("Select Temperature for Prediction", min_value=int(mean_temp - 2), max_value=int(mean_temp + 2), value=int(mean_temp))
 
 # Load data (Simulate reading from CSV)
