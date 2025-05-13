@@ -9,6 +9,6 @@ def create_vector_store(chunks):
         chunks,  # NOT chunks
         embedding_model,
         persist_directory="./chroma_db_hf",
-        client_settings={"database_impl": "duckdb"}  # Optional fallback for sqlite3
+        client_settings={"database_impl": "duckdb"})  # Optional fallback for sqlite3
     vector_db.persist()
     return vector_db
