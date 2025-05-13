@@ -140,7 +140,7 @@ with tabs[1]:
 
     if images:
         for img in images:
-            st.image(img, caption="Uploaded Image", use_column_width=True)
+            st.image(img, caption="Uploaded Image", use_container_width=True)
             #img_bytes = img.read() if hasattr(img, 'read') else img.getvalue()
             with st.spinner("Classifying..."):
                 result = classify_leaf(img)
