@@ -30,7 +30,7 @@ leaf_model = tf.keras.models.load_model("plant_disease_classifier.h5")
 
 # ARIMA prediction function
 def predict_price(crop_choice, dates):
-    if crop == "Rice":
+    if crop_choice == "Rice":
         model = rice_model
     else:
         model = maize_model
