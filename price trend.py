@@ -107,7 +107,7 @@ with tabs[0]:
 
     # Input multiple dates with minimum constraint
     selected_dates = st.date_input(
-        "Select future dates (after 2023-12-31):",
+        "Select date",
         [],
         min_value=datetime(2024, 1, 1),
         format="YYYY-MM-DD"
@@ -172,22 +172,3 @@ with tabs[1]:
             st.image(pil_img, caption=f"Frame {frame_count+1} - {result}")
             frame_count += 5
         cap.release()
-
-
-    
-st.title("AI Post-Harvest Advisory Chatbot")
-
-if "qa_chain" not in st.session_state:
-    st.write("Initializing document intelligence...")
-    docs = load_and_split("FARMAN/S-9-3-40-764.pdf")  # replace with your file
-    db = create_vector_store(docs)
-
-query = st.text_input("Ask a question about storage, pests, or preservation")
-
-if query:
-    retriever = db.as_retriever(search_kwargs={"k": 15})  # Retrieve top 3 most relevant chunks
-    #query = "What are the emergimg technologies fr pest control"
-    retrieved_docs = retriever.get_relevant_documents(query)
-    response = generate_response(query, retrieved_docs)
-    st.write("### Answer:")
-    st.write(response)
