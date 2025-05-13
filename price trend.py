@@ -13,86 +13,110 @@ from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 
 
-# Load ARIMA Model (assuming it's saved as a pickle)
-@st.cache_resource
-def load_model():
-    # Load your trained ARIMA model here (replace with actual path)
-    import pickle
-    with open('models/rice_price_model.pkl', 'rb') as file:
-        arima_model = pickle.load(file)
-    return arima_model
+# Load ARIMA models
+with open("models/rice_model.pkl", "rb") as f:
+    rice_model = pickle.load(f)
 
-# Load plant classifier model (TensorFlow)
-@st.cache_resource
-def load_plant_model():
-    return tf.keras.models.load_model('plant_disease_classifier.h5')
+with open("models/maize_model.pkl", "rb") as f:
+    maize_model = pickle.load(f)
 
-# Section 1: Rice Price Forecasting
-# Section 1: Rice Price Forecasting
-st.header('Rice Price Prediction')
+# Load TensorFlow image classifier model
+leaf_model = tf.keras.models.load_model("leaf_classifier.h5")
 
-# User input for month, temperature, and inflation
-month = st.selectbox("Select the month", options=[
-    "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
-])
+# ARIMA prediction function
+def predict_price(crop, dates):
+    model = rice_model if crop == "Rice" else maize_model
+    start = (dates[0] - datetime(2023, 12, 31)).days
+    end = (dates[-1] - datetime(2023, 12, 31)).days
+    forecast = model.predict(start=start, end=end)
+    predictions = [forecast[(d - datetime(2023, 12, 31)).days] for d in dates]
+    return pd.DataFrame({"Date": dates, "Price": predictions})
 
-# Convert the month name to a number (0 to 11)
-month_idx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].index(month)
+# Leaf classifier function
+def classify_leaf(image_bytes):
+    image = Image.open(io.BytesIO(image_bytes)).resize((224, 224))
+    img_array = np.expand_dims(np.array(image) / 255.0, axis=0)
+    prediction = leaf_model.predict(img_array)[0][0]
+    return "Healthy" if prediction > 0.5 else "Spoilt"
 
-# Temperature and inflation sliders
-temperature = st.slider("Select Temperature for the selected month (°C)", min_value=-10, max_value=50, value=30)
-inflation = st.slider("Select Inflation Rate for the selected month (%)", min_value=0, max_value=100, value=2)
-model = load_model()
-# Predict button
-if st.button("Predict Rice Price"):
-    # Prepare input data for prediction (month index, temperature, inflation)
-    input_data = np.array([[month_idx, temperature, inflation]])
-    
-    # Make the prediction using the trained regression model
-    predicted_price = model.predict(input_data)[0]
-    
-    # Display the prediction
-    st.write(f"Predicted Price for Rice in {month}: {predicted_price:.2f}")
+st.title("Agri Forecast & Leaf Classifier App")
 
-    # Plot historical data and forecast
-    plt.figure(figsize=(10, 6))
-    plt.plot(df.index, y, label='Historical Data')
-    plt.axvline(x=pd.to_datetime(f"2023-{month_idx + 1}-01"), color='red', linestyle='--', label=f'Predicted for {month}')
-    plt.legend()
-    plt.title("Rice Price Prediction")
-    plt.xlabel("Date")
-    plt.ylabel("Price of Rice")
-    st.pyplot()
+# Tabs for sections
+tabs = st.tabs(["Price Prediction", "Leaf Image Classification"])
 
-# Load data (Simulate reading from CSV)
-df = pd.read_csv('Market Price data - 2007 to 2023.csv', parse_dates=['Date'], index_col='Date')
-#model = load_a_model()
-plant_model = load_plant_model()
+# --- Section 1: Price Prediction ---
+with tabs[0]:
+    st.header("Rice and Maize Price Prediction")
 
-# Sidebar UI elements
-#st.sidebar.title("Rice Price Prediction & Plant Health")
-#month_input = st.sidebar.date_input("Select the Month to Predict", value=pd.to_datetime("2023-12-01"))
-#temperature_input = get_temperature_slider(df)
+    crop_choice = st.radio("Choose Crop", ["Rice", "Maize"])
 
-# Image Classification for Plant Leaf (TensorFlow)
-uploaded_image = st.file_uploader("Upload an image of a plant leaf", type=["jpg", "jpeg", "png"])
-if uploaded_image is not None:
-    image = Image.open(uploaded_image).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_column_width=True)
-    
-    if st.button("Classify Leaf Health"):
-        input_tensor = preprocess_image(image)
-        predictions = plant_model.predict(input_tensor)
-        #predicted_class = np.argmax(predictions, axis=1)
-        class_names = ['Tomato__Tomato_mosaic_virus', 'Tomato_Spider_mites_Two_spotted_spider_mite',
-                'Potato___Late_blight', 'Tomato__Target_Spot', 'Tomato_Leaf_Mold',
-                'Potato___healthy', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato_Bacterial_spot',
-                'Tomato_healthy', 'Tomato_Septoria_leaf_spot', 'Pepper__bell___healthy',
-                'Pepper__bell___Bacterial_spot', 'Potato___Early_blight', 'Tomato_Late_blight', 'Tomato_Early_blight']
-        predicted_label = class_names[np.argmax(predictions)]
-        # Adjust based on your model
-        st.success(f"Prediction: **{predicted_label}**")
-        st.write(f"Confidence: {np.max(predictions) * 100:.2f}%")
+    # Input multiple dates with minimum constraint
+    selected_dates = st.date_input(
+        "Select future dates (after 2023-12-31):",
+        [],
+        min_value=datetime(2024, 1, 1),
+        format="YYYY-MM-DD"
+    )
+
+    # Adjust day to end of the month
+    adjusted_dates = sorted(set(
+        datetime(d.year, d.month, calendar.monthrange(d.year, d.month)[1])
+        for d in selected_dates
+    ))
+
+    if adjusted_dates:
+        df = predict_price(crop_choice, adjusted_dates)
+        st.write("### Price Prediction Table")
+        st.dataframe(df)
+
+        # Plotting
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df["Date"], y=df["Price"], mode='lines+markers', name=crop_choice))
+        fig.update_layout(title=f"{crop_choice} Price Trend", xaxis_title="Date", yaxis_title="Price")
+        st.plotly_chart(fig)
+
+# --- Section 2: Leaf Image Classification ---
+with tabs[1]:
+    st.header("Leaf Image Health Classifier")
+
+    uploaded_files = st.file_uploader("Upload leaf images", type=["jpg", "png"], accept_multiple_files=True)
+    camera_image = st.camera_input("Or take a picture")
+
+    images = []
+    if uploaded_files:
+        images.extend(uploaded_files)
+    elif camera_image:
+        images.append(camera_image)
+
+    if images:
+        for img in images:
+            st.image(img, caption="Uploaded Image", use_column_width=True)
+            img_bytes = img.read() if hasattr(img, 'read') else img.getvalue()
+            result = classify_leaf(img_bytes)
+            st.success(f"Prediction: {result}")
+
+    st.subheader("Classify Leaves in Video")
+    video_file = st.file_uploader("Upload a video", type=["mp4", "mov"])
+    if video_file:
+        tfile = tempfile.NamedTemporaryFile(delete=False)
+        tfile.write(video_file.read())
+        cap = cv2.VideoCapture(tfile.name)
+
+        st.write("Extracting and classifying frames...")
+        frame_count = 0
+        while cap.isOpened() and frame_count < 30:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            pil_img = Image.fromarray(frame).resize((224, 224))
+            buf = io.BytesIO()
+            pil_img.save(buf, format="JPEG")
+            result = classify_leaf(buf.getvalue())
+            st.image(pil_img, caption=f"Frame {frame_count+1} - {result}")
+            frame_count += 5
+        cap.release()
+
 
     
 st.title("AI Post-Harvest Advisory Chatbot")
