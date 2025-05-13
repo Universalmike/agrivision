@@ -7,3 +7,8 @@ pandas
 statsmodels
 numpy
 pillow
+langchain
+langchain-community
+chromadb
+google.generativeai
+pypdf
