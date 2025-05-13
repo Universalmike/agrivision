@@ -5,3 +5,4 @@ plotly
 Pillow
 tensorflow
 opencv-python-headless
+pickle
