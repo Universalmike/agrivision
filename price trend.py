@@ -29,7 +29,7 @@ with open("models/maize_model.pkl", "rb") as f:
     maize_model = pickle.load(f)
 
 # Load TensorFlow image classifier model
-leaf_model = load_model("plant_disease_classifier.h5")
+model = load_model("plant_disease_classifier.h5")
 
 # ARIMA prediction function
 def predict_price(crop, dates):
@@ -63,24 +63,29 @@ def predict_price(crop, dates):
 
 
 # Leaf classifier function
+
+class_labels = [
+    'Tomato__Tomato_mosaic_virus', 'Tomato_Spider_mites_Two_spotted_spider_mite',
+    'Potato___Late_blight', 'Tomato__Target_Spot', 'Tomato_Leaf_Mold',
+    'Potato___healthy', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato_Bacterial_spot',
+    'Tomato_healthy', 'Tomato_Septoria_leaf_spot', 'Pepper__bell___healthy',
+    'Pepper__bell___Bacterial_spot', 'Potato___Early_blight', 'Tomato_Late_blight',
+    'Tomato_Early_blight'
+]
+
 def classify_leaf(image_bytes):
-    #image = Image.open(io.BytesIO(image_bytes)).resize((224, 224))
-    #img_array = np.expand_dims(np.array(image) / 255.0, axis=0)
-    #prediction = leaf_model.predict(img_array)[0][0]
     img = image.load_img(image_bytes, target_size=(224, 224))
     img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
-    img_array /= 255.0  # Normalize the image
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array /= 255.0  # Normalize
 
-# Predicting the class of the image
-    predicted_class = leaf_model.predict(img_array)
-    class_labels = ['Tomato__Tomato_mosaic_virus', 'Tomato_Spider_mites_Two_spotted_spider_mite',
-                'Potato___Late_blight', 'Tomato__Target_Spot', 'Tomato_Leaf_Mold',
-                'Potato___healthy', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato_Bacterial_spot',
-                'Tomato_healthy', 'Tomato_Septoria_leaf_spot', 'Pepper__bell___healthy',
-                'Pepper__bell___Bacterial_spot', 'Potato___Early_blight', 'Tomato_Late_blight', 'Tomato_Early_blight']
-    predicted_label = class_labels[np.argmax(predicted_class)]
-    return predicted_label
+    predicted_probs = model.predict(img_array)[0]  # Shape: (15,)
+    predicted_index = np.argmax(predicted_probs)
+    predicted_label = class_labels[predicted_index]
+    confidence = predicted_probs[predicted_index]
+
+    return f"Prediction: {predicted_label} (Confidence: {confidence:.2f})"
+
 
 st.title("Agri Forecast & Leaf Classifier App")
 
