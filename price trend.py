@@ -107,8 +107,8 @@ with tabs[0]:
         min_value=datetime(2024, 1, 1),
         format="YYYY-MM-DD"
     )
-    if len(selected_dates) >=12:
-        St.warning("You can only select up to 12 dates")
+    if len(selected_dates) >12:
+        st.warning("You can only select up to 12 dates")
     else:
         
     # Adjust day to end of the month
@@ -116,15 +116,11 @@ with tabs[0]:
            datetime(d.year, d.month, calendar.monthrange(d.year, d.month)[1])
            for d in selected_dates
          ))
-        if adjusted_dates not in selected_dates:
-            selected_dates.append(adjusted_dates)
-        else:
-            st.info("Date already added")
 
-    if adjusted_dates:
-        df = predict_price(crop_choice, adjusted_dates)
-        st.write("### Price Prediction Table")
-        st.dataframe(df)
+        if adjusted_dates:
+           df = predict_price(crop_choice, adjusted_dates)
+           st.write("### Price Prediction Table")
+           st.dataframe(df)
 
         # Plotting
         fig = go.Figure()
