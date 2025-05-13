@@ -2,7 +2,7 @@ streamlit
 pandas
 numpy
 plotly
-Pillow
+pillow
 tensorflow
 opencv-python-headless
 pickle
