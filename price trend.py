@@ -36,13 +36,17 @@ prediction_date = pd.to_datetime(prediction_date_str)
 
 if st.button("Predict Price"):
     # 3. Get the number of months between last date and prediction date
+    # 3. Compute number of months to prediction, plus lag buffer
     last_train_date = df.index[-1]
-    future_months = (prediction_date.year - last_train_date.year) * 12 + (prediction_date.month - last_train_date.month)
-
-    if future_months <= 0:
+    months_to_prediction = (prediction_date.year - last_train_date.year) * 12 + (prediction_date.month - last_train_date.month)
+    
+    if months_to_prediction <= 0:
         st.error("Prediction date must be after the last date in the training data.")
         st.stop()
-
+    
+    # Add 3 months buffer for lag features
+    future_months = months_to_prediction + 3
+    
     # 4. Generate future monthly dates
     future_dates = pd.date_range(start=last_train_date + pd.DateOffset(months=1), periods=future_months, freq='MS')
 
