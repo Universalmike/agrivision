@@ -12,7 +12,7 @@ import calendar
 import io
 import pickle
 from tensorflow.keras.preprocessing import image
-from langchain.vectorstores import FAISS
+from langchain.vectorstores import Chroma
 from utils.preprocess import preprocess_image
 from utils.translate import translate_answer
 from FARMAN.loader import load_and_split
@@ -29,7 +29,7 @@ with open("models/maize_model.pkl", "rb") as f:
     maize_model = pickle.load(f)
 
 # Load TensorFlow image classifier model
-leaf_model = tf.keras.models.load_model("plant_disease_classifier.h5")
+leaf_model = load_model("plant_disease_classifier.h5")
 
 # ARIMA prediction function
 def predict_price(crop, dates):
