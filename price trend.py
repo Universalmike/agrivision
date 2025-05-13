@@ -23,8 +23,8 @@ def train_exog_arima(data, target_variable, order=(1, 1, 1)):
     model = ARIMA(data[target_variable], order=order)
     return model.fit()
 
-temp_model = train_exog_arima(df, 'temperature')
-infl_model = train_exog_arima(df, 'inflation')
+temp_model = train_exog_arima(df, 'Teamperature')
+infl_model = train_exog_arima(df, 'Inflation')
 
 # 2. Streamlit App
 st.title("Rice Price Prediction")
@@ -58,8 +58,8 @@ if st.button("Predict Price"):
 
     # 7. Create lag features
     for lag in [1, 2, 3]:
-        future_exog_df[f'inflation_lag_{lag}'] = future_exog_df['inflation'].shift(lag)
-        future_exog_df[f'temperature_lag_{lag}'] = future_exog_df['temperature'].shift(lag)
+        future_exog_df[f'inflation_lag_{lag}'] = future_exog_df['Inflation'].shift(lag)
+        future_exog_df[f'temperature_lag_{lag}'] = future_exog_df['Teamperature'].shift(lag)
 
     # Drop rows with NaNs from lags
     future_exog_df.dropna(inplace=True)
@@ -74,7 +74,7 @@ if st.button("Predict Price"):
 
     # Reorder columns to match training order
     exog_for_rice_prediction = exog_for_rice_prediction[[
-        'temperature', 'inflation',
+        'Teamperature', 'Inflation',
         'inflation_lag_1', 'inflation_lag_2', 'inflation_lag_3',
         'temperature_lag_1', 'temperature_lag_2', 'temperature_lag_3'
     ]]
