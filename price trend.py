@@ -101,7 +101,7 @@ with tabs[0]:
 
         # Plotting
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df["Date"], y=df["Price"], mode='lines+markers', name=crop_choice))
+        fig.add_trace(go.Scatter(x=df["Date"], y=df["Predicted Price"], mode='lines+markers', name=crop_choice))
         fig.update_layout(title=f"{crop_choice} Price Trend", xaxis_title="Date", yaxis_title="Price")
         st.plotly_chart(fig)
 
