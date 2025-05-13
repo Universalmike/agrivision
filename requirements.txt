@@ -21,3 +21,5 @@ sentence-transformers
 tensorflow
 tf-keras
 pickleshare==0.7.5
+chromadb>=0.4.24
+duckdb
