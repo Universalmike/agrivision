@@ -22,7 +22,7 @@ except FileNotFoundError:
 #         'inflation': [2, 2.5, 3, 2.8, 3.2, 3.5]}
 # index = pd.to_datetime(['2023-01-01', '2023-02-01', '2023-03-01', '2023-04-01', '2023-05-01', '2023-06-01'])
 # df = pd.DataFrame(data, index=index)
-df = pd.read_excel("DATASET-MARKET PRICE.xlsx")
+df = pd.read_csv("Market Price data-2007 to 2023.csv")
 
 # 1. Train ARIMA models for temperature and inflation
 def train_exog_arima(data, target_variable, order=(1, 2, 2)):
