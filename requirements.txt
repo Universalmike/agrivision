@@ -1,4 +1,4 @@
-statsmodel.api == 0.14.4
+statsmodel==0.14.4
 streamlit==1.37.0
 pandas==2.1.4
 pickle
