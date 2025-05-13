@@ -80,8 +80,14 @@ if uploaded_image is not None:
     if st.button("Classify Leaf Health"):
         input_tensor = preprocess_image(image)
         predictions = plant_model.predict(input_tensor)
-        predicted_class = np.argmax(predictions, axis=1)
-        class_names = ['Healthy', 'Diseased']  # Adjust based on your model
+        #predicted_class = np.argmax(predictions, axis=1)
+        class_names = ['Tomato__Tomato_mosaic_virus', 'Tomato_Spider_mites_Two_spotted_spider_mite',
+                'Potato___Late_blight', 'Tomato__Target_Spot', 'Tomato_Leaf_Mold',
+                'Potato___healthy', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato_Bacterial_spot',
+                'Tomato_healthy', 'Tomato_Septoria_leaf_spot', 'Pepper__bell___healthy',
+                'Pepper__bell___Bacterial_spot', 'Potato___Early_blight', 'Tomato_Late_blight', 'Tomato_Early_blight']
+        #predicted_label = class_labels[np.argmax(predicted_class)]
+        # Adjust based on your model
         st.success(f"Prediction: **{class_names[predicted_class[0]]}**")
         st.write(f"Confidence: {np.max(predictions) * 100:.2f}%")
 
