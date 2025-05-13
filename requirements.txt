@@ -1,8 +1,9 @@
-statsmodels
 streamlit
+tensorflow
+torch
+transformers
+googletrans==4.0.0-rc1
 pandas
+statsmodels
 numpy
-pickle-mixin
-scikit-learn
-matplotlib
-openpyxl
+pillow
