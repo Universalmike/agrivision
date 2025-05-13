@@ -7,13 +7,15 @@ import tensorflow as tf
 from PIL import Image
 from utils.preprocess import preprocess_image
 from utils.translate import translate_answer
+from FARMAN.loader import load_and_split
+from FARMAN.vector_sector import create_vector_store
 
 # Load ARIMA Model (assuming it's saved as a pickle)
 @st.cache_resource
 def load_arima_model():
     # Load your trained ARIMA model here (replace with actual path)
     import pickle
-    with open('model/rice_price_arimax_model.pkl', 'rb') as file:
+    with open('rice_price_arimax_model.pkl', 'rb') as file:
         arima_model = pickle.load(file)
     return arima_model
 
@@ -63,12 +65,20 @@ if uploaded_image is not None:
 if month_input:
     predicted_price = predict_rice_price(model, df, temperature_input)
     st.write(f"Predicted Rice Price for {month_input.strftime('%B %Y')}: {predicted_price:.2f} NGN")
+    
+st.title("AI Post-Harvest Advisory Chatbot")
 
-# RAG system with Gemini (Translation included)
-question = st.text_input("Ask a question about rice farming or post-harvest loss:")
+if "qa_chain" not in st.session_state:
+    st.write("Initializing document intelligence...")
+    docs = load_and_split("data/tomato_storage_fao.pdf")  # replace with your file
+    db = create_vector_store(docs)
 
-if question:
-    # Replace with your RAG and Gemini API call logic
-    answer = "Example answer from your model."
-    translated_answer = translate_answer(answer, lang_choice="Yoruba")
-    st.write(f"Answer: {translated_answer}")
+query = st.text_input("Ask a question about storage, pests, or preservation")
+
+if query:
+    retriever = db.as_retriever(search_kwargs={"k": 15})  # Retrieve top 3 most relevant chunks
+    #query = "What are the emergimg technologies fr pest control"
+    retrieved_docs = retriever.get_relevant_documents(query)
+    response = generate_response(query, retrieved_docs)
+    st.write("### Answer:")
+    st.write(response)
