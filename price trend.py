@@ -117,10 +117,10 @@ with tabs[0]:
            for d in selected_dates
          ))
 
-        if adjusted_dates:
-           df = predict_price(crop_choice, adjusted_dates)
-           st.write("### Price Prediction Table")
-           st.dataframe(df)
+    if adjusted_dates:
+        df = predict_price(crop_choice, adjusted_dates)
+        st.write("### Price Prediction Table")
+        st.dataframe(df)
 
         # Plotting
         fig = go.Figure()
