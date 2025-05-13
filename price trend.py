@@ -31,36 +31,43 @@ st.title("Rice Price Prediction")
 st.subheader("Predict the price of rice for a future date.")
 
 # Get the prediction date from the user
-prediction_date_str = st.date_input("Select the prediction date", datetime(2025, 11, 1))
-prediction_date = pd.to_datetime(prediction_date_str).to_period('M')
+#prediction_date_str = st.date_input("Select the prediction date")
+#prediction_date = pd.to_datetime(prediction_date_str).to_period('M')
+
+# Let's say this is your input
+prediction_date = st.date_input("Select prediction date")  # returns datetime.date
 
 if st.button("Predict Price"):
     if temp_model is None or infl_model is None:
         st.error("Failed to train ARIMA models for temperature and inflation.")
         st.stop()
 
-    # Ensure datetime format
+    # Step 1: Convert prediction_date and last_train_date to Timestamp
     try:
-        last_train_date = pd.to_datetime(df.index[-1])
-        prediction_date = pd.to_datetime(prediction_date)
+        prediction_date = pd.Timestamp(prediction_date)
+        last_train_date = pd.to_datetime(df.index[-1])  # e.g., '2025-06-30'
     except Exception as e:
         st.error(f"Invalid date format: {e}")
         st.stop()
 
-    # Convert to Periods with monthly frequency
+    # Step 2: Convert both to Periods with monthly frequency
     try:
-        last_period = last_train_date.to_period('M')
         pred_period = prediction_date.to_period('M')
+        last_period = last_train_date.to_period('M')
     except Exception as e:
-        st.error(f"Date conversion failed: {e}")
+        st.error(f"Date conversion to period failed: {e}")
         st.stop()
 
-    # Calculate number of months
+    # Step 3: Calculate number of months
     n_periods = pred_period - last_period
 
     if n_periods <= 0:
         st.error("Prediction date must be after the last date in the training data.")
         st.stop()
+
+    # Now you're safe to proceed with the forecast
+    st.success(f"Number of months to forecast: {n_periods}")
+
 
 
     # 3. Generate future dates for exogenous variable predictions
