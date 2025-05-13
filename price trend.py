@@ -36,19 +36,32 @@ prediction_date = pd.to_datetime(prediction_date_str).to_period('M')
 
 if st.button("Predict Price"):
     if temp_model is None or infl_model is None:
-        st.error("failed to trainARIMA models for t and i")
+        st.error("Failed to train ARIMA models for temperature and inflation.")
         st.stop()
-    # Calculate the number of periods to forecast
-    last_train_date = df.index[-1]
-     # Convert to monthly Periods
-    last_period = last_train_date.to_period('M')
-    pred_period = prediction_date.to_period('M')
 
-    # Compute number of months between the periods
+    # Ensure datetime format
+    try:
+        last_train_date = pd.to_datetime(df.index[-1])
+        prediction_date = pd.to_datetime(prediction_date)
+    except Exception as e:
+        st.error(f"Invalid date format: {e}")
+        st.stop()
+
+    # Convert to Periods with monthly frequency
+    try:
+        last_period = last_train_date.to_period('M')
+        pred_period = prediction_date.to_period('M')
+    except Exception as e:
+        st.error(f"Date conversion failed: {e}")
+        st.stop()
+
+    # Calculate number of months
     n_periods = pred_period - last_period
+
     if n_periods <= 0:
         st.error("Prediction date must be after the last date in the training data.")
         st.stop()
+
 
     # 3. Generate future dates for exogenous variable predictions
     future_dates = pd.date_range(start=last_train_date + pd.Timedelta(days=1), periods=n_periods, freq='M') # Monthly Frequency
