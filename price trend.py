@@ -90,7 +90,7 @@ st.title("AI Post-Harvest Advisory Chatbot")
 
 if "qa_chain" not in st.session_state:
     st.write("Initializing document intelligence...")
-    docs = load_and_split("data/tomato_storage_fao.pdf")  # replace with your file
+    docs = load_and_split("FARMAN/S-9-3-40-764.pdf")  # replace with your file
     db = create_vector_store(docs)
 
 query = st.text_input("Ask a question about storage, pests, or preservation")
