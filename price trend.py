@@ -38,7 +38,7 @@ def get_temperature_slider(df):
     return st.slider("Select Temperature for Prediction", min_value=int(mean_temp - 2), max_value=int(mean_temp + 2), value=int(mean_temp))
 
 # Load data (Simulate reading from CSV)
-df = pd.read_csv('data/rice_data.csv', parse_dates=['date'], index_col='date')
+df = pd.read_csv('Market Price data - 2007 to 2023.csv', parse_dates=['Date'], index_col='Date')
 model = load_arima_model()
 plant_model = load_plant_model()
 
