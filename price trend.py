@@ -16,14 +16,14 @@ from langchain.embeddings import HuggingFaceEmbeddings
 
 
 # Load ARIMA models
-with open("models/rice_model.pkl", "rb") as f:
+with open("rice_model.pkl", "rb") as f:
     rice_model = pickle.load(f)
 
-with open("models/maize_model.pkl", "rb") as f:
+with open("maize_model.pkl", "rb") as f:
     maize_model = pickle.load(f)
 
 # Load TensorFlow image classifier model
-leaf_model = tf.keras.models.load_model("leaf_classifier.h5")
+leaf_model = tf.keras.models.load_model("plant_disease_classifier.h5")
 
 # ARIMA prediction function
 def predict_price(crop, dates):
