@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 from PIL import Image
 import pickle
+from langchain.vectorstores import Chroma
 from utils.preprocess import preprocess_image
 from utils.translate import translate_answer
 from FARMAN.loader import load_and_split
