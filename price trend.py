@@ -28,13 +28,31 @@ with open("models/maize_model.pkl", "rb") as f:
 leaf_model = tf.keras.models.load_model("plant_disease_classifier.h5")
 
 # ARIMA prediction function
-def predict_price(crop, dates):
-    model = rice_model if crop == "Rice" else maize_model
-    start = (dates[0] - datetime(2023, 12, 31)).days
-    end = (dates[-1] - datetime(2023, 12, 31)).days
-    forecast = model.predict(start=start, end=end)
-    predictions = [forecast[(d - datetime(2023, 12, 31)).days] for d in dates]
-    return pd.DataFrame({"Date": dates, "Price": predictions})
+def predict_price(crop_choice, dates):
+    if crop == "Rice":
+        model = rice_model
+    else:
+        model = maize_model
+
+    # Forecast for 24 months
+    forecast_steps = 24
+    forecast = model.forecast(steps=forecast_steps)
+
+    base_year = 2023
+    base_month = 12
+    base_index = 0
+
+    predictions = []
+
+    for d in dates:
+        months_since_base = (d.year - base_year) * 12 + (d.month - base_month)
+        if 0 <= months_since_base < forecast_steps:
+            predictions.append(forecast[months_since_base])
+        else:
+            predictions.append(np.nan)  # Out of forecast range
+
+    return pd.DataFrame({"Date": dates, "Predicted Price": predictions})
+
 
 # Leaf classifier function
 def classify_leaf(image_bytes):
