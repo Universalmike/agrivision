@@ -1,6 +1,6 @@
-from langchain.vectorstores import FAISS
+#from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
-#from langchain.vectorstores import Chroma
+from langchain.vectorstores import Chroma
 
 def create_vector_store(chunks):
     # Use an efficient embedding model
