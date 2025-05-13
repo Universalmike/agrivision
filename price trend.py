@@ -74,7 +74,7 @@ def classify_leaf(image_bytes):
                 'Tomato_healthy', 'Tomato_Septoria_leaf_spot', 'Pepper__bell___healthy',
                 'Pepper__bell___Bacterial_spot', 'Potato___Early_blight', 'Tomato_Late_blight', 'Tomato_Early_blight']
     predicted_label = class_labels[np.argmax(predicted_class)]
-    return print(f"prediction: {predicted_label})
+    return print(f"prediction: {predicted_label}")
 
 st.title("Agri Forecast & Leaf Classifier App")
 
