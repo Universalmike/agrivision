@@ -73,7 +73,7 @@ class_labels = [
     'Tomato_Early_blight'
 ]
 
-ef classify_leaf(image_file):
+def classify_leaf(image_file):
     # Ensure image_file is a stream
     image_bytes = image_file.read() if hasattr(image_file, 'read') else image_file.getvalue()
     img = image.load_img(io.BytesIO(image_bytes), target_size=(224, 224))
