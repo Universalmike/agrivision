@@ -1,6 +1,7 @@
-statsmodel==0.14.4
-streamlit==1.37.0
-pandas==2.1.4
-pickle
-numpy==2.0.2
-datetime
+statsmodels
+streamlit
+pandas
+numpy
+pickle-mixin
+scikit-learn
+matplotlib
