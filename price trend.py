@@ -85,10 +85,6 @@ if uploaded_image is not None:
         st.success(f"Prediction: **{class_names[predicted_class[0]]}**")
         st.write(f"Confidence: {np.max(predictions) * 100:.2f}%")
 
-# Rice price prediction
-if month_input:
-    predicted_price = predict_rice_price(model, df, temperature_input)
-    st.write(f"Predicted Rice Price for {month_input.strftime('%B %Y')}: {predicted_price:.2f} NGN")
     
 st.title("AI Post-Harvest Advisory Chatbot")
 
