@@ -40,8 +40,12 @@ if st.button("Predict Price"):
         st.stop()
     # Calculate the number of periods to forecast
     last_train_date = df.index[-1]
-    n_periods_offset = prediction_date - last_train_date  # Get number of days
-    n_periods = n_periods_offset.n
+     # Convert to monthly Periods
+    last_period = last_train_date.to_period('M')
+    pred_period = prediction_date.to_period('M')
+
+    # Compute number of months between the periods
+    n_periods = pred_period - last_period
     if n_periods <= 0:
         st.error("Prediction date must be after the last date in the training data.")
         st.stop()
