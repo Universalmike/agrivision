@@ -37,8 +37,8 @@ month = st.selectbox("Select the month", options=[
 month_idx = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].index(month)
 
 # Temperature and inflation sliders
-temperature = st.slider("Select Temperature for the selected month (°C)", min_value=-10, max_value=40, value=30)
-inflation = st.slider("Select Inflation Rate for the selected month (%)", min_value=0, max_value=20, value=2)
+temperature = st.slider("Select Temperature for the selected month (°C)", min_value=-10, max_value=50, value=30)
+inflation = st.slider("Select Inflation Rate for the selected month (%)", min_value=0, max_value=100, value=2)
 model = load_model()
 # Predict button
 if st.button("Predict Rice Price"):
@@ -67,9 +67,9 @@ df = pd.read_csv('Market Price data - 2007 to 2023.csv', parse_dates=['Date'], i
 plant_model = load_plant_model()
 
 # Sidebar UI elements
-st.sidebar.title("Rice Price Prediction & Plant Health")
-month_input = st.sidebar.date_input("Select the Month to Predict", value=pd.to_datetime("2023-12-01"))
-temperature_input = get_temperature_slider(df)
+#st.sidebar.title("Rice Price Prediction & Plant Health")
+#month_input = st.sidebar.date_input("Select the Month to Predict", value=pd.to_datetime("2023-12-01"))
+#temperature_input = get_temperature_slider(df)
 
 # Image Classification for Plant Leaf (TensorFlow)
 uploaded_image = st.file_uploader("Upload an image of a plant leaf", type=["jpg", "jpeg", "png"])
