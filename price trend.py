@@ -86,9 +86,9 @@ if uploaded_image is not None:
                 'Potato___healthy', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato_Bacterial_spot',
                 'Tomato_healthy', 'Tomato_Septoria_leaf_spot', 'Pepper__bell___healthy',
                 'Pepper__bell___Bacterial_spot', 'Potato___Early_blight', 'Tomato_Late_blight', 'Tomato_Early_blight']
-        #predicted_label = class_labels[np.argmax(predicted_class)]
+        predicted_label = class_names[np.argmax(predictions)]
         # Adjust based on your model
-        st.success(f"Prediction: **{class_names[predicted_class[0]]}**")
+        st.success(f"Prediction: **{predicted_label}**")
         st.write(f"Confidence: {np.max(predictions) * 100:.2f}%")
 
     
