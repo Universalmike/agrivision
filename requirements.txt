@@ -19,4 +19,3 @@ pypdf
 scikit-learn
 sentence-transformers
 tensorflow
-keras==2.11.0
