@@ -6,3 +6,4 @@ Pillow
 tensorflow
 opencv-python-headless
 pickle
+statsmodels
