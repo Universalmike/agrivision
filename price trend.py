@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import plotly.graph_objects as go
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
@@ -60,7 +61,13 @@ def classify_leaf(image_bytes):
     image = Image.open(io.BytesIO(image_bytes)).resize((224, 224))
     img_array = np.expand_dims(np.array(image) / 255.0, axis=0)
     prediction = leaf_model.predict(img_array)[0][0]
-    return "Healthy" if prediction > 0.5 else "Spoilt"
+    class_labels = ['Tomato__Tomato_mosaic_virus', 'Tomato_Spider_mites_Two_spotted_spider_mite',
+                'Potato___Late_blight', 'Tomato__Target_Spot', 'Tomato_Leaf_Mold',
+                'Potato___healthy', 'Tomato__Tomato_YellowLeaf__Curl_Virus', 'Tomato_Bacterial_spot',
+                'Tomato_healthy', 'Tomato_Septoria_leaf_spot', 'Pepper__bell___healthy',
+                'Pepper__bell___Bacterial_spot', 'Potato___Early_blight', 'Tomato_Late_blight', 'Tomato_Early_blight']
+    predicted_label = class_labels[np.argmax(predicted_class)]
+    return predicted_label
 
 st.title("Agri Forecast & Leaf Classifier App")
 
